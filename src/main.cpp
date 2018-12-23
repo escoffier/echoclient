@@ -24,7 +24,7 @@
 #include "spdlog/sinks/daily_file_sink.h"
 
 const int PORT = 9995;
-const char *SERVER = "192.168.21.197";
+const char *SERVER = "192.168.0.105";
 
 //#include "spdlog/sinks/basic_file_sink.h"
 void initLog()
@@ -64,6 +64,10 @@ static void event_cb(struct bufferevent *bev, short events, void *ptr)
     {
         auto fd = bufferevent_getfd(bev);
         spdlog::get("echoclient")->info("BEV_EVENT_CONNECTED fd: {}", fd);
+    }
+    else if(events & BEV_EVENT_EOF)
+    {
+        spdlog::get("echoclient")->info("peer closed");
     }
 }
 
@@ -133,7 +137,7 @@ int main(int argc, char const *argv[])
     bufferevent_setcb(bev, readcb, nullptr, event_cb, nullptr);
     bufferevent_enable(bev, EV_READ | EV_WRITE);
 
-    bufferevent *inbev = bufferevent_socket_new(base, 0, 0);
+    bufferevent *inbev = bufferevent_socket_new(base, STDIN_FILENO, 0);
     bufferevent_setcb(inbev, read_stdin, nullptr, event_cb, bev);
     bufferevent_enable(inbev, EV_READ | EV_WRITE);
 
